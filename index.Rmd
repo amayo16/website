@@ -3,22 +3,24 @@ title: "dplyr"
 output: html_document
 ---
 
-# This is a first-level header
-## This is a second-level header
-### This is a third-level header
+## Filter Columns and Rows
 
-To make a paragraph, just type normally.
+In order to filter columns and rows in dplyr, you must use the functions select and filter.  Let's look at an example using the Lahman baseball database.
 
-* item 1
-* item 2
-* item 3
-* item 4
+We first must load the Lahman and dplyr packages.
 
-column 1 | column 2
----|---
-Phillies | National 
-Yankees | American
-Cubs | National
-Red Sox | American
+```{r message = FALSE, warning = FALSE}
+library(Lahman)
+library(dplyr)
+```
 
-<img src="picture.jpg" width="300" /> 
+Now, lets use dplyr in order to look at the homeruns and players of the 1927 New York Yankees:
+```{r message = FALSE, warning = FALSE}
+HR<-Batting%>%
+  select(playerID,yearID,teamID,HR)%>%
+  filter(teamID == "NYA" & yearID==1927)
+
+head(HR)
+
+```
+
