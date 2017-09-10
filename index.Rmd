@@ -1,9 +1,12 @@
 ---
-title: "dplyr"
+title: "An Introduction to Dplyr"
 output: html_document
 ---
+##Introduction
+My name is Andrew Mayo and I am a graduate student at Mercyhurst University studying Data Science.  I created this website to teach others the basics of using 
+dplyr when querying information from a database.  
 
-## Filter Columns and Rows
+###Filter Columns and Rows
 
 In order to filter columns and rows in dplyr, you must use the functions select and filter.  Let's look at an example using the Lahman baseball database.
 
@@ -24,3 +27,90 @@ head(HR)
 
 ```
 
+As we can see in this example, the select function allows us to choose which variables we want to look at.  While the filter function lets us put 
+parameters on the variables.  Lastly, the head function (this is optional) lets us look at only the top results.
+
+Let's look at a few more examples.  This first function will return any player who has hit more than 40 homeruns while playing for the Yankees.
+```{r message = FALSE, warning = FALSE}
+Batting%>%
+  select(playerID, yearID, teamID,HR,SO)%>%
+  filter(HR > 40 & teamID == "NYA")
+
+```
+
+This next function adds a bit of complexity to the filter function and shows that you can be quite specific when querying with dplyr.  We now want
+to look at all players who played for Philadelphia during the 1970s and hit over 30 homeruns in a season.  Let's take a look:
+```{r message = FALSE, warning = FALSE}
+Batting%>%
+  select(teamID,yearID,playerID,HR)%>%
+  filter(yearID >= 1970 & yearID <= 1979 & HR > 30 & teamID == "PHI")
+```
+
+Now that we understand the basics of the filter function lets introduce another level to dplyr, the arrange function.  The arrange function lets you order any 
+variable from either least to greatest or greatest to least. To show how this works lets look at some elite baseball players.  This function shows any player
+who has had less then 10 strikeouts while going up to bat at least 400 times in a single season.  We will arrange the output to show the least amount of 
+strikeouts at the top. (In order to limit the number of responses we use the head function)
+```{r message = FALSE, warning = FALSE}
+Batting%>%
+  select(playerID,SO,AB)%>%
+  filter(SO < 10 & AB > 400)%>%
+  arrange(SO)%>%
+  head(10)
+```
+
+Looks great! This next function will show how to use the arrange function and show the largest numbers at the top.
+```{r message = FALSE, warning = FALSE}
+Batting%>%
+  select(playerID, yearID, teamID, HR)%>%
+  filter(HR>50)%>%
+  arrange(desc(HR))%>%
+  head(10)
+
+```
+
+###Grouping and Summarizing Rows and Columns
+
+Many times when analyzing data we may want to see the total records of a single individual over the course of their careers.  Introducing the group_by and summarize function.  These functions will allow us to look at things such as total homeruns hit over their career and much more. 
+
+For this first function we will show how many homeruns Babe Ruth hit over the course of his career. 
+```{r message = FALSE, warning = FALSE}
+Batting%>%
+  group_by(playerID)%>%
+  summarize(career = sum(HR))%>%
+  select(playerID,career)%>%
+  filter(playerID == "ruthba01")
+```
+
+As you can see we must first choose to group by the playerID.  Then we use the summarize function to find the total number of homeruns with the sum() function and give it the variable name career.  It should be recoginzed that once it is given this variable name you must use "career" throughout the remaining function.
+
+This next function will let us look at all players who have hit over 600 homeruns over their entire career.
+```{r message = FALSE, warning = FALSE}
+Batting%>%
+  group_by(playerID)%>%
+  summarize(career = sum(HR))%>%
+  filter(career >= 600)%>%
+  arrange(desc(career))
+
+```
+
+Looks great! Only eight players have ever hit over 600 homeruns.  Now let's introduce a new function to add to filtering.  Say we want to see who has averaged the most homeruns per season over their entire career.  This is when we would use mean() which is used exactly the same as sum().
+```{r message = FALSE, warning = FALSE}
+Batting%>%
+  group_by(playerID)%>%
+  summarize(avg_HR = mean(HR))%>%
+  filter(avg_HR >= 30)%>%
+  arrange(desc(avg_HR))
+```
+
+Now let's combine everything we've learned for this next query.  In this last query we only want to see players who have hit over 50 homeruns at least once in a season since 1970.  This may be a little more complicated since we do not want any individuals to repeat.
+```{r message = FALSE, warning = FALSE}
+Batting%>%
+  filter(yearID >= 1970)%>%
+  group_by(playerID)%>%
+  summarize(maxHR = max(HR))%>%
+  filter(maxHR > 50)%>%
+  arrange(desc(maxHR))%>%
+  select(playerID)
+```
+
+As you can see in this query within the summarize section we must identify that we only want the max homeruns a player has hit over his career.  This ensures that only one season is selected for each player.  We then filter a second time so that only players that had a max homerun season greater than 50.  Lastly, the select function allows us to only see the playerID and not the other information such as the number of homeruns.
